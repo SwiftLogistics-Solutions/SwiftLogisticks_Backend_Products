@@ -1,11 +1,12 @@
-const express = require("express");
-const mongoose = require('mongoose')
+import express from "express";
+import cors from "cors";
+import connectDB from "./config/db.js";
+import dotenv from "dotenv";
 
-const cors = require("cors");
-require("dotenv").config();
+dotenv.config();
 
 const app = express();
-mongoose.connect('mongodb+srv://middleware58_db_user:12345@cluster-1.6ci6iel.mongodb.net/Middleware')
+connectDB();
 
 app.use(cors());
 app.use(express.json());
