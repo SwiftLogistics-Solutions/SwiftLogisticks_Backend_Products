@@ -79,3 +79,64 @@ export const getOffers = async (req, res) => {
     });
   }
 };
+
+// POST /decrement-count - Decrement product stock
+export const decrementProductCount = async (req, res) => {
+  try {
+    const { productId, quantity } = req.body;
+    
+    // Validate input
+    if (!productId || !quantity || quantity < 1) {
+      return res.status(400).json({ 
+        success: false,
+        error: 'Invalid productId or quantity' 
+      });
+    }
+
+    // Find the product first to check current stock
+    const product = await Product.findById(productId);
+    
+    if (!product) {
+      return res.status(404).json({ 
+        success: false,
+        error: 'Product not found' 
+      });
+    }
+    
+    // Check if there's enough stock
+    if (product.stock < quantity) {
+      return res.status(400).json({ 
+        success: false,
+        error: 'Insufficient stock',
+        currentStock: product.stock,
+        requestedQuantity: quantity
+      });
+    }
+    
+    // Update the product stock
+    const updatedProduct = await Product.findByIdAndUpdate(
+      productId,
+      { 
+        $inc: { stock: -quantity }
+      },
+      { new: true } // Return the updated document
+    );
+    
+    res.json({
+      success: true,
+      message: 'Stock decremented successfully',
+      productId: productId,
+      previousStock: product.stock,
+      newStock: updatedProduct.stock,
+      decrementedBy: quantity
+    });
+    
+  } catch (error) {
+    console.error('Error decrementing product stock:', error);
+    res.status(500).json({ 
+      success: false,
+      error: 'Internal server error',
+      message: error.message
+    });
+  }
+};
